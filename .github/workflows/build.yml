@@ -54,11 +54,6 @@ jobs:
           zstd -d -r --rm ./sdk || true
         shell: bash
 
-      - name: Add conan remote
-        run: |
-          conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-        shell: cmd
-
       - name: Conan install
         run: |
           conan install . -i build -s build_type=Release -s compiler="Visual Studio" --build fmt --build libiconv --build=libxml2 --build=zlib --build=bzip
@@ -73,15 +68,27 @@ jobs:
         with:
           name: FBX2glTF-windows.exe
           path: build/Release/FBX2glTF.exe
-  build-ubuntu:
-    runs-on: ubuntu-latest
+  build-centos:
+    runs-on: ubuntu-18.04
+    container:
+      image: rockylinux/rockylinux:8
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      
+        uses: actions/checkout@v2   
+        
+      - name: Install epel
+        run: |
+          yum install -y epel-release
+        shell: bash   
+        
+      - name: Install dependencies
+        run: |
+          yum install -y curl python3-pip git clang p7zip boost-devel cmake
+        shell: bash
+
       - name: Install conan
         run: |
-          pip install --upgrade conan
+          pip3 install --upgrade 'conan>=1.33.0' 
         shell: bash
 
       - name: Setup conan profile
@@ -112,7 +119,7 @@ jobs:
             
       - name: install 7z extract
         run: |
-          7z x 2020.2.zip
+          7za x 2020.2.zip
         shell: bash
 
       - name: move
@@ -125,15 +132,10 @@ jobs:
         run: |
           zstd -d -r --rm ./sdk || true
         shell: bash
-
-      - name: Add conan remote
-        run: |
-          conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-        shell: bash
-
+        
       - name: Conan install
         run: |
-          conan install . -i build -s build_type=Release --build fmt -s compiler.libcxx=libstdc++11 --build libiconv --build=libxml2 --build=zlib --build=bzip
+          conan install  . -i build -s build_type=Release --build fmt -s compiler.libcxx=libstdc++11 --build libiconv --build=libxml2 --build=zlib --build=bzip
         shell: bash
 
       - name: Conan build
@@ -199,11 +201,6 @@ jobs:
       - name: Decompress sdk
         run: |
           zstd -d -r --rm ./sdk || true
-        shell: bash
-
-      - name: Add conan remote
-        run: |
-          conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
         shell: bash
 
       - name: Conan install
